@@ -6,5 +6,8 @@ public class ProductController : Controller
   private DataContext _dataContext;
   public ProductController(DataContext db) => _dataContext = db;
   public IActionResult Category() => View(_dataContext.Categories.OrderBy(c => c.CategoryName));
-  public IActionResult Index(int id) => View(_dataContext.Products.Where(p => p.CategoryId == id && p.Discontinued == false).OrderBy(p => p.ProductName));
+  public IActionResult Index(int id){
+    ViewBag.id = id;
+    return View(_dataContext.Categories.OrderBy(c => c.CategoryName));
+  }
 }
