@@ -1,0 +1,138 @@
+@model IEnumerable<CartItem>
+@{
+    ViewBag.Title = "Checkout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mt-3"><i class="bi bi-credit-card"></i> Checkout</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Cart
+    </a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Order Review</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-center">Price</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-center">Discount</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var discount = ViewContext.HttpContext.RequestServices.GetService<DataContext>().GetActiveProductDiscount(item.ProductId);
+                                var discountAmount = discount != null ? item.Product.UnitPrice * item.Quantity * discount.DiscountPercent : 0;
+                                <tr>
+                                    <td>@item.Product.ProductName</td>
+                                    <td class="text-center">$@item.Product.UnitPrice.ToString("F2")</td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-center">
+                                        @if (discount != null)
+                                        {
+                                            <span class="badge bg-success">@((discount.DiscountPercent * 100).ToString("F0"))% OFF</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">$@((item.Product.UnitPrice * item.Quantity - discountAmount).ToString("F2"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Shipping Information</h5>
+            </div>
+            <div class="card-body">
+                @{
+                    var customer = ViewContext.HttpContext.RequestServices.GetService<DataContext>().Customers.FirstOrDefault(c => c.Email == User.Identity.Name);
+                }
+                @if (customer != null)
+                {
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>@customer.CompanyName</strong><br>
+                            @customer.Address<br>
+                            @customer.City, @customer.Region @customer.PostalCode<br>
+                            @customer.Country
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Contact:</strong><br>
+                            Phone: @customer.Phone<br>
+                            Email: @customer.Email
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Order Total</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <span>Subtotal:</span>
+                    <span>$@ViewBag.CartTotal.ToString("F2")</span>
+                </div>
+                @if (ViewBag.DiscountTotal > 0)
+                {
+                    <div class="d-flex justify-content-between text-success">
+                        <span>Discount:</span>
+                        <span>-$@ViewBag.DiscountTotal.ToString("F2")</span>
+                    </div>
+                }
+                <div class="d-flex justify-content-between">
+                    <span>Shipping:</span>
+                    <span class="text-success">FREE</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>Total:</strong>
+                    <strong>$@ViewBag.FinalTotal.ToString("F2")</strong>
+                </div>
+                
+                <form asp-action="ProcessCheckout" method="post" class="mt-3">
+                    @Html.AntiForgeryToken()
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Place Order
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> Your payment information is secure and encrypted.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

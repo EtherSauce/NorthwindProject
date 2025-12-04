@@ -46,6 +46,7 @@
                         if (User.IsInRole("northwind-customer"))
                         {
                           <li><a class="dropdown-item" asp-controller="Customer" asp-action="Account"><i class="bi bi-person"></i> Account</a></li>
+                          <li><a class="dropdown-item" asp-controller="Cart" asp-action="Index"><i class="bi bi-cart"></i> Shopping Cart</a></li>
                         }
                         <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout"><i class="bi bi-door-closed"></i> Sign Out</a></li>
                       } else {
